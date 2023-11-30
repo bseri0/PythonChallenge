@@ -27,6 +27,9 @@ with open(input_csv_file, "r") as csvfile:
 # Calculate total votes
 total_votes = sum(votes.values())
 
+# Determine the winner based on popular vote
+winner = max(votes, key=votes.get)
+
 # Write election results to CSV file
 with open(csv_file_path, "w", newline='') as csvfile:
     writer = csv.writer(csvfile)
@@ -41,4 +44,9 @@ with open(csv_file_path, "w", newline='') as csvfile:
         votes_percentage = (vote_count / total_votes) * 100
         writer.writerow([f"{candidate}: {votes_percentage:.2f}% ({vote_count})"])
 
-    print("Election results printed to CSV file.")
+    # Include the winner based on popular vote in the CSV file
+    writer.writerow(["-------------------------"])
+    writer.writerow([f"Winner: {winner}"])
+    writer.writerow(["-------------------------"])
+
+print("Election results printed to CSV file.")

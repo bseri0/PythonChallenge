@@ -1,52 +1,51 @@
 import os
 import csv
 
-print("CUR DIR:  " + str(os.getcwd()))
-
 # Relative path to the input CSV file
 path1 = os.path.join(os.getcwd(), 'module_3')
-print("path1:" + path1)
 input_csv_file = os.path.join(path1, 'PyBank', 'resources', 'budget_data.csv')
-print("Input CSV path:" + input_csv_file)
 
 # Read the CSV file and store the data in a list of dictionaries
 with open(input_csv_file, 'r') as csvfile:
     csvreader = csv.DictReader(csvfile)
     data = list(csvreader)
 
-# Calculate the number of months
-months = len(data)
+# Calculate the total number of months
+total_months = len(data)
 
-# Calculate the total profit/losses
-summ = sum(int(row['Profit/Losses']) for row in data)
+# Calculate the net total amount of "Profit/Losses"
+net_total = sum(int(row['Profit/Losses']) for row in data)
 
-# Calculate the average profit/losses per month
-avg = summ / months
+# Calculate the changes in "Profit/Losses" over the entire period
+changes = [int(data[i]['Profit/Losses']) - int(data[i-1]['Profit/Losses']) for i in range(1, total_months)]
 
-# Find the minimum and maximum values in the `Profit/Losses` column
-min_row = min(data, key=lambda x: int(x['Profit/Losses']))
-max_row = max(data, key=lambda x: int(x['Profit/Losses']))
+# Calculate the average of those changes
+average_change = sum(changes) / (total_months - 1)  # Subtract 1 to exclude the first month
 
-# Print the results
-print(f"Months: {months}")
-print(f"Sum: {summ}")
-print(f"The Average: {avg}")
-print(f"The minimum value: {min_row}")
-print(f"The maximum value: {max_row}")
+# Find the greatest increase and decrease in profits
+greatest_increase = max((row for row in data[1:]), key=lambda x: int(x['Profit/Losses']) - int(data[data.index(x) - 1]['Profit/Losses']))
+greatest_decrease = min((row for row in data[1:]), key=lambda x: int(x['Profit/Losses']) - int(data[data.index(x) - 1]['Profit/Losses']))
+
+# Display the results
+print(f"Total Months: {total_months}")
+print(f"Net Total Amount of Profit/Losses: ${net_total}")
+print(f"Average Change: ${average_change:.2f}")
+print(f"Greatest Increase in Profits: {greatest_increase['Date']} (${int(greatest_increase['Profit/Losses']) - int(data[data.index(greatest_increase) - 1]['Profit/Losses']):.2f})")
+print(f"Greatest Decrease in Profits: {greatest_decrease['Date']} (${int(greatest_decrease['Profit/Losses']) - int(data[data.index(greatest_decrease) - 1]['Profit/Losses']):.2f})")
 
 # Relative path to the output CSV file
 output_csv_file = os.path.join(path1, 'PyBank', 'analysis', 'budget_data_res.csv')
 
 # Write the results to the output CSV file
 with open(output_csv_file, 'w', newline='') as csvfile:
-    fieldnames = ['Months', 'Sum', 'Average', 'Minimum Value', 'Maximum Value']
+    fieldnames = ['Total Months', 'Net Total Amount of Profit/Losses', 'Average Change', 'Greatest Increase in Profits', 'Greatest Decrease in Profits']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
     writer.writeheader()
     writer.writerow({
-        'Months': months,
-        'Sum': summ,
-        'Average': avg,
-        'Minimum Value': min_row['Profit/Losses'],
-        'Maximum Value': max_row['Profit/Losses']
+        'Total Months': total_months,
+        'Net Total Amount of Profit/Losses': net_total,
+        'Average Change': average_change,
+        'Greatest Increase in Profits': f"{greatest_increase['Date']} (${int(greatest_increase['Profit/Losses']) - int(data[data.index(greatest_increase) - 1]['Profit/Losses']):.2f})",
+        'Greatest Decrease in Profits': f"{greatest_decrease['Date']} (${int(greatest_decrease['Profit/Losses']) - int(data[data.index(greatest_decrease) - 1]['Profit/Losses']):.2f})"
     })
